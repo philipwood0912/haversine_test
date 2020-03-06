@@ -6,4 +6,3 @@
     define('INCLUDE_PATH', ABSPATH.'/includes');
 
     require_once ABSPATH.'/config/config.php';
-    require_once INCLUDE_PATH.'/address.php';
