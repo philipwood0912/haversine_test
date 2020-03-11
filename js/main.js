@@ -1,4 +1,7 @@
 (() => {
+    // variable for my google api key
+    // you do not want to share this to the public!!
+    var mykey = config.MY_KEY;
     // resources - http://wordpress.mrreid.org/wp-content/uploads/2011/12/haversine.pdf
     //           - https://rosettacode.org/wiki/Haversine_formula#ES6
     // function to covert degrees into radians
@@ -74,28 +77,28 @@
         data: {
             clinics: [],
             closeClinics: [],
-            postal: "",
-            currentLatLon: []
+            postal: ""
         },
         methods: {
             pullLocation(input){
+                this.resetClinics();
                 let url = `https://geocoder.ca/?postal=${input}&geoit=XML&json=1`;
                 fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    this.currentLatLon.push([data.latt, data.longt]);
+                    //this.currentLatLon.push([data.latt, data.longt]);
                     //console.log(this.currentLatLon);
                     for(i=0;i<this.clinics.length;i++){
-                        let distance = haversineForm([this.currentLatLon[0][0], this.currentLatLon[0][1]], [this.clinics[i].Latt, this.clinics[i].Longt]);
+                        let distance = haversineForm([data.latt, data.longt], [this.clinics[i].Latt, this.clinics[i].Longt]);
                         this.clinics[i].distance = distance.toFixed(3);
-                        // next loop through clinics - only keeping ones within 20km
-                        // of the currentLatLon - push to close clinics
-                        // also figure out a way to reset arrays / clinic distance
-                        // when a new postal code goes in
-                        // also consider getting rid of current lat and lon
-                        // data from API can be fed right into haversine formula
+                        if(this.clinics[i].distance <= 20.000){
+                            this.closeClinics.push(this.clinics[i]);
+                        }else{
+                            continue;
+                        }
                     }
                     console.log(this.clinics);
+                    console.log(this.closeClinics);
                 })
                 .catch(err => console.log(err))
             },
@@ -110,6 +113,14 @@
                     console.log(this.clinics);
                 })
                 .catch(err => console.log(err))
+            },
+            resetClinics(){
+                //reset closeClinics array
+                this.closeClinics = [];
+                // reset pulled clinic distances
+                for(i=0;i<this.clinics.length;i++){
+                    this.clinics[i].distance = "";
+                }
             }
         },
         created: function() {
@@ -117,6 +128,5 @@
         }
 
     }).$mount("#app");
-
 
 })();
