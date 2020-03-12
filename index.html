@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="sheetsheet" href="css/main.css">
     <script src="https://unpkg.com/vue/dist/vue.js"></script>
-    <title>Document</title>
+    <script src="dist/vue-google-maps.js"></script>
+    <title>Haversine FUN</title>
 </head>
 <body>
     <h1>Haversine Test Page</h1>
@@ -16,7 +17,33 @@
             <input v-model="postal" maxlength="6" name="postal">
             <button name="submit">Submit</button>
         </form>
-        <div id="map"></div>
+        <div id="map">
+            <gmap-map
+            :center="{lat:lat, lng:lng}"
+            :zoom="11"
+            map-type-id="terrain"
+            style="width: 1000px; height: 600px"
+            >
+            <gmap-info-window
+            :position="windowPosition"
+            :opened="windowOpen"
+            :options="windowOptions"
+            @closeclick="windowClose"
+            >
+            <h2>{{windowInfo}}</h2>
+            </gmap-info-window>
+            <gmap-marker
+            :position="currentLatLon" icon="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            />
+            <gmap-marker
+                :key="index"
+                v-for="(c, index) in closeClinics"
+                :position="{lat:c.Latt, lng:c.Longt}"
+                :clickable="true"
+                @click="clinicClick({lat:c.Latt, lng:c.Longt}, c, index)"
+            />
+            </gmap-map>
+        </div>
     </main>
     <script src="config/config.js"></script>
     <script src="js/main.js"></script>

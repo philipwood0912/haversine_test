@@ -73,11 +73,34 @@
     //console.log(haversineForm([36.12, -86.67], [33.94, -118.40]));
     console.log(haversineForm([41.8319, -88.2572], [46.2342, 6.05278]));
 
+    Vue.use(VueGoogleMaps, {
+        //vue library plugin rules
+        load: {
+          key: mykey,
+          v: '3.26'
+        },
+        installComponents: true
+      })
+
     const vm = new Vue({
         data: {
             clinics: [],
             closeClinics: [],
-            postal: ""
+            postal: "",
+            currentLatLon: {lat:42.984909, lng:-81.245302},
+            lat: 42.984909,
+            lng: -81.245302,
+            windowInfo: "",
+            windowPosition: null,
+            windowOpen: false,
+            windowIndex: null,
+            windowOptions: {
+                pixelOffset: {
+                width: 0,
+                height: -35
+                }
+            },
+            
         },
         methods: {
             pullLocation(input){
@@ -86,22 +109,43 @@
                 fetch(url)
                 .then(res => res.json())
                 .then(data => {
-                    //this.currentLatLon.push([data.latt, data.longt]);
-                    //console.log(this.currentLatLon);
+                    // assign currentlatlon with values from API
+                    // currentlatlon used as marker for starting point
+                    // data must be parsed before being used with google maps 
+                    this.currentLatLon = Object.assign({}, this.currentLatLon, { lat:parseFloat(data.latt), lng:parseFloat(data.longt) });
+                    // different tests for lat and long values
+                    // this.$set(this.currentLatLon, 'lat', data.latt);
+                    // this.$set(this.currentLatLon, 'lng', data.longt);
+                    //this.currentLatLon.push({lat:data.latt, lng:data.longt});
+                    // this.lat = parseFloat(data.latt);
+                    // this.lng = parseFloat(data.longt);
                     for(i=0;i<this.clinics.length;i++){
+                        // run haversine form on pulled values from API and clinics 
                         let distance = haversineForm([data.latt, data.longt], [this.clinics[i].Latt, this.clinics[i].Longt]);
+                        // convert distance to 3 decimal points - example: 4.555 = 4kilometres 555metres
                         this.clinics[i].distance = distance.toFixed(3);
+                        // if clinic distance is less or equal to 20k, push or closeclinic array else continue through loop
                         if(this.clinics[i].distance <= 20.000){
                             this.closeClinics.push(this.clinics[i]);
                         }else{
                             continue;
                         }
                     }
+                    for(i=0;i<this.closeClinics.length;i++){
+                        //convert latt and longt values from a string to a float value
+                        this.closeClinics[i].Latt = parseFloat(this.closeClinics[i].Latt);
+                        this.closeClinics[i].Longt = parseFloat(this.closeClinics[i].Longt);
+                        //this.$set(this.closeClinics[i], 'position', {lat:parseFloat(this.closeClinics[i].Latt), lng:parseFloat(this.closeClinics[i].Longt)});
+                    }
                     console.log(this.clinics);
                     console.log(this.closeClinics);
+                    console.log(this.currentLatLon);
+                    console.log(this.lat);
+                    console.log(this.lng);
                 })
                 .catch(err => console.log(err))
             },
+            //function to pull clinics and populate array on vue creation
             pullClinics(){
                 let url = "./includes/address.php?clinic=true";
                 fetch(url)
@@ -110,10 +154,10 @@
                     for(i=0;i<data.length;i++){
                         this.clinics.push(data[i]);
                     }
-                    console.log(this.clinics);
                 })
                 .catch(err => console.log(err))
             },
+            // reset function for clinic arrays
             resetClinics(){
                 //reset closeClinics array
                 this.closeClinics = [];
@@ -121,9 +165,33 @@
                 for(i=0;i<this.clinics.length;i++){
                     this.clinics[i].distance = "";
                 }
+            },
+            // function for pop up window on map markers
+            clinicClick(obj, c, index){
+                //reposition map center on click
+                this.lat = obj.lat;
+                this.lng = obj.lng;
+                // position of popup window
+                this.windowPosition = {lat:obj.lat, lng:obj.lng};
+                // popup window content
+                this.windowInfo = c.Clinic_Name;
+                // if windowIndex is equal to index of clicked marker
+                if(this.windowIndex == index){
+                    // toggle the popup window
+                    this.windowOpen = !this.windowOpen
+                } else {
+                    // if not open window anyways and set windowIndex as marker index
+                    this.windowOpen = true;
+                    this.windowIndex = index;
+                }
+            },
+            //close window function
+            windowClose(){
+                this.windowOpen = false;
             }
         },
         created: function() {
+            //pull clinics on creation
             this.pullClinics();
         }
 
