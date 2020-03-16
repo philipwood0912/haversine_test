@@ -12,6 +12,7 @@
 <body>
     <h1>Haversine Test Page</h1>
     <main id="app">
+        <h2>{{postalMessage}}</h2>
         <form @submit.prevent="pullLocation(postal)">
             <label>Your Postal Code</label>
             <input v-model="postal" maxlength="6" name="postal">
@@ -19,7 +20,7 @@
         </form>
         <div id="map">
             <gmap-map
-            :center="{lat:lat, lng:lng}"
+            :center="{lat:curLat, lng:curLng}"
             :zoom="11"
             map-type-id="terrain"
             style="width: 1000px; height: 600px"
@@ -30,10 +31,12 @@
             :options="windowOptions"
             @closeclick="windowClose"
             >
-            <h2>{{windowInfo}}</h2>
+            <h2>{{windowInfoTitle}}</h2>
+            <h3>Address: {{windowInfoAddress}}</h3>
+            <h3>Phone: {{windowInfoPhone}}</h3>
             </gmap-info-window>
             <gmap-marker
-            :position="currentLatLon" icon="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
+            :position="{lat:curLat, lng:curLng}" icon="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
             />
             <gmap-marker
                 :key="index"
@@ -43,6 +46,15 @@
                 @click="clinicClick({lat:c.Latt, lng:c.Longt}, c, index)"
             />
             </gmap-map>
+        </div>
+        <div id="info">
+            <div v-for="(c, index) in closeClinics" :key="index">
+                <h2>{{c.Clinic_Name}}</h2>
+                <h3>{{c.Address}}</h3>
+                <h3>{{c.Phone}}</h3>
+                <a :href="c.Website">Website</a>
+                <h4>{{c.Actual_Distance}}</h4>
+            </div>
         </div>
     </main>
     <script src="config/config.js"></script>

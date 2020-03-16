@@ -87,10 +87,13 @@
             clinics: [],
             closeClinics: [],
             postal: "",
-            currentLatLon: {lat:42.984909, lng:-81.245302},
+            curLat: 42.984909,
+            curLng: -81.245302,
             lat: 42.984909,
             lng: -81.245302,
-            windowInfo: "",
+            windowInfoTitle: "",
+            windowInfoAddress: "",
+            windowInfoPhone: "",
             windowPosition: null,
             windowOpen: false,
             windowIndex: null,
@@ -100,50 +103,65 @@
                 height: -35
                 }
             },
+            postalMessage: ""
             
         },
         methods: {
             pullLocation(input){
                 this.resetClinics();
-                let url = `https://geocoder.ca/?postal=${input}&geoit=XML&json=1`;
-                fetch(url)
-                .then(res => res.json())
-                .then(data => {
-                    // assign currentlatlon with values from API
-                    // currentlatlon used as marker for starting point
-                    // data must be parsed before being used with google maps 
-                    this.currentLatLon = Object.assign({}, this.currentLatLon, { lat:parseFloat(data.latt), lng:parseFloat(data.longt) });
-                    // different tests for lat and long values
-                    // this.$set(this.currentLatLon, 'lat', data.latt);
-                    // this.$set(this.currentLatLon, 'lng', data.longt);
-                    //this.currentLatLon.push({lat:data.latt, lng:data.longt});
-                    // this.lat = parseFloat(data.latt);
-                    // this.lng = parseFloat(data.longt);
-                    for(i=0;i<this.clinics.length;i++){
-                        // run haversine form on pulled values from API and clinics 
-                        let distance = haversineForm([data.latt, data.longt], [this.clinics[i].Latt, this.clinics[i].Longt]);
-                        // convert distance to 3 decimal points - example: 4.555 = 4kilometres 555metres
-                        this.clinics[i].distance = distance.toFixed(3);
-                        // if clinic distance is less or equal to 20k, push or closeclinic array else continue through loop
-                        if(this.clinics[i].distance <= 20.000){
-                            this.closeClinics.push(this.clinics[i]);
-                        }else{
-                            continue;
+                // run regex to make sure postal code is inputed
+                let regexTest = this.postalCodeCheck(input); 
+                if(regexTest){
+                    debugger;
+                    let url = `https://geocoder.ca/?postal=${input}&geoit=XML&json=1`;
+                    fetch(url)
+                    .then(res => res.json())
+                    .then(data => {
+                        // assign currentlatlon with values from API
+                        // currentlatlon used as marker for starting point
+                        // data must be parsed before being used with google maps
+                        this.curLat = parseFloat(data.latt);
+                        this.curLng = parseFloat(data.longt);
+                        for(i=0;i<this.clinics.length;i++){
+                            // run haversine form on pulled values from API and clinics 
+                            let distance = haversineForm([data.latt, data.longt], [this.clinics[i].Latt, this.clinics[i].Longt]);
+                            // convert distance to 3 decimal points - example: 4.555 = 4kilometres 555metres
+                            this.clinics[i].Distance = distance.toFixed(1);
+                            let metres = distance.toFixed(3);
+                            let metresSplit =  metres.split('.');
+                            this.clinics[i].Metres = metresSplit[1];
+                            // if clinic distance is less or equal to 20k, push or closeclinic array else continue through loop
+                            if(this.clinics[i].Distance <= 20.0){
+                                this.closeClinics.push(this.clinics[i]);
+                                this.closeClinics.sort(function(a, b){
+                                    return a.Distance - b.Distance;
+                                });
+                            }else{
+                                continue;
+                            }
                         }
-                    }
-                    for(i=0;i<this.closeClinics.length;i++){
-                        //convert latt and longt values from a string to a float value
-                        this.closeClinics[i].Latt = parseFloat(this.closeClinics[i].Latt);
-                        this.closeClinics[i].Longt = parseFloat(this.closeClinics[i].Longt);
-                        //this.$set(this.closeClinics[i], 'position', {lat:parseFloat(this.closeClinics[i].Latt), lng:parseFloat(this.closeClinics[i].Longt)});
-                    }
-                    console.log(this.clinics);
-                    console.log(this.closeClinics);
-                    console.log(this.currentLatLon);
-                    console.log(this.lat);
-                    console.log(this.lng);
-                })
-                .catch(err => console.log(err))
+                        for(i=0;i<this.closeClinics.length;i++){
+                            //convert latt and longt values from a string to a float value
+                            this.closeClinics[i].Latt = parseFloat(this.closeClinics[i].Latt);
+                            this.closeClinics[i].Longt = parseFloat(this.closeClinics[i].Longt);
+                            this.closeClinics[i].Actual_Distance = "";
+                            debugger;
+                            if(this.closeClinics[i].Distance < 1.000){
+                                this.closeClinics[i].Actual_Distance = "" + this.closeClinics[i].Metres + " Metres";
+                            } else {
+                                this.closeClinics[i].Actual_Distance = "" + this.closeClinics[i].Distance + " Kilometres"
+                            }
+                        }
+                        console.log(this.clinics);
+                        console.log(this.closeClinics);
+                        console.log(this.currentLatLon);
+                        console.log(this.lat);
+                        console.log(this.lng);
+                    })
+                    .catch(err => console.log(err))
+                } else {
+                    this.postalMessage = "Not a valid postal code..";
+                }
             },
             //function to pull clinics and populate array on vue creation
             pullClinics(){
@@ -163,18 +181,20 @@
                 this.closeClinics = [];
                 // reset pulled clinic distances
                 for(i=0;i<this.clinics.length;i++){
-                    this.clinics[i].distance = "";
+                    this.clinics[i].Distance = "";
                 }
             },
             // function for pop up window on map markers
             clinicClick(obj, c, index){
                 //reposition map center on click
-                this.lat = obj.lat;
-                this.lng = obj.lng;
+                this.curLat = obj.lat;
+                this.ng = obj.lng;
                 // position of popup window
                 this.windowPosition = {lat:obj.lat, lng:obj.lng};
                 // popup window content
-                this.windowInfo = c.Clinic_Name;
+                this.windowInfoTitle = c.Clinic_Name;
+                this.windowInfoAddress = c.Address;
+                this.windowInfoPhone = c.Phone;
                 // if windowIndex is equal to index of clicked marker
                 if(this.windowIndex == index){
                     // toggle the popup window
@@ -188,6 +208,15 @@
             //close window function
             windowClose(){
                 this.windowOpen = false;
+            },
+            postalCodeCheck(input){
+                let regex = new RegExp(/^[a-z]\d[a-z]\d[a-z]\d/, 'i');
+                let match = regex.test(input);
+                if (match === true){
+                    return true;
+                } else {
+                    return false;
+                }
             }
         },
         created: function() {
