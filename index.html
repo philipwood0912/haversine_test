@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="sheetsheet" href="css/main.css">
+    <link rel="stylesheet" href="css/main.css">
     <script src="https://unpkg.com/vue/dist/vue.js"></script>
     <script src="dist/vue-google-maps.js"></script>
     <title>Haversine FUN</title>
@@ -25,7 +25,7 @@
             map-type-id="terrain"
             style="width: 1000px; height: 600px"
             >
-            <gmap-info-window
+            <!-- <gmap-info-window
             :position="windowPosition"
             :opened="windowOpen"
             :options="windowOptions"
@@ -34,7 +34,7 @@
             <h2>{{windowInfoTitle}}</h2>
             <h3>Address: {{windowInfoAddress}}</h3>
             <h3>Phone: {{windowInfoPhone}}</h3>
-            </gmap-info-window>
+            </gmap-info-window> -->
             <gmap-marker
             :position="{lat:curLat, lng:curLng}" icon="http://maps.google.com/mapfiles/ms/icons/blue-dot.png"
             />
@@ -46,6 +46,18 @@
                 @click="clinicClick({lat:c.Latt, lng:c.Longt}, c, index)"
             />
             </gmap-map>
+            <div id="info-wrp" v-if="windowOpen">
+                <div id="infowindow">
+                    <h2 id="title">{{windowInfoTitle}}</h2>
+                    <h3 id="address">Address: {{windowInfoAddress}}</h3>
+                    <h3 id="phone">Phone: {{windowInfoPhone}}</h3>
+                    <div id="wrapper">
+                        <h4 id="distance">Distance: {{windowInfoDistance}}</h4>
+                        <a id="website" target="_blank" :href="windowInfoWebsite">Website: {{windowInfoWebsite}}</a>
+                    </div>
+                </div>
+            </div>
+            
         </div>
         <div id="info">
             <div v-for="(c, index) in closeClinics" :key="index">

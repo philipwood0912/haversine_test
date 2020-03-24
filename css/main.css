@@ -6,3 +6,41 @@ html, body {
     margin: 0;
     padding: 0;
 }
+h2, h3, h4, a {
+    text-decoration: none;
+    margin: 0;
+    font-weight: normal;
+}
+#map {
+    position: relative;
+    width: 1000px;
+    height: 600px;
+}
+#info-wrp {
+    position: absolute;
+    bottom: 0;
+}
+#infowindow {
+   background-color: rgba(0,0,0,0.7);
+   padding: 10px;     
+}
+#title {
+    font-size: 30px;
+    color: white;
+}
+#address {
+    font-size: 23px;
+    color: white;
+}
+#phone {
+    font-size: 23px;
+    color: white;
+}
+#website {
+    font-size: 23px;
+    color: white;
+}
+#distance {
+    font-size: 23px;
+    color: white;
+}

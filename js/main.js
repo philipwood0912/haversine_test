@@ -94,6 +94,8 @@
             windowInfoTitle: "",
             windowInfoAddress: "",
             windowInfoPhone: "",
+            windowInfoWebsite: "",
+            windowInfoDistance: "",
             windowPosition: null,
             windowOpen: false,
             windowIndex: null,
@@ -112,7 +114,7 @@
                 // run regex to make sure postal code is inputed
                 let regexTest = this.postalCodeCheck(input); 
                 if(regexTest){
-                    debugger;
+                    //debugger;
                     let url = `https://geocoder.ca/?postal=${input}&geoit=XML&json=1`;
                     fetch(url)
                     .then(res => res.json())
@@ -144,8 +146,9 @@
                             //convert latt and longt values from a string to a float value
                             this.closeClinics[i].Latt = parseFloat(this.closeClinics[i].Latt);
                             this.closeClinics[i].Longt = parseFloat(this.closeClinics[i].Longt);
+
                             this.closeClinics[i].Actual_Distance = "";
-                            debugger;
+                            //debugger;
                             if(this.closeClinics[i].Distance < 1.000){
                                 this.closeClinics[i].Actual_Distance = "" + this.closeClinics[i].Metres + " Metres";
                             } else {
@@ -187,23 +190,36 @@
             // function for pop up window on map markers
             clinicClick(obj, c, index){
                 //reposition map center on click
-                this.curLat = obj.lat;
-                this.ng = obj.lng;
+                this.lat = obj.lat;
+                this.lng = obj.lng;
                 // position of popup window
                 this.windowPosition = {lat:obj.lat, lng:obj.lng};
                 // popup window content
                 this.windowInfoTitle = c.Clinic_Name;
                 this.windowInfoAddress = c.Address;
                 this.windowInfoPhone = c.Phone;
-                // if windowIndex is equal to index of clicked marker
+                this.windowInfoWebsite = c.Website;
+                this.windowInfoDistance = c.Actual_Distance;
+                debugger;
                 if(this.windowIndex == index){
                     // toggle the popup window
                     this.windowOpen = !this.windowOpen
+                    debugger;
                 } else {
                     // if not open window anyways and set windowIndex as marker index
                     this.windowOpen = true;
                     this.windowIndex = index;
+                    debugger;
                 }
+                // if windowIndex is equal to index of clicked marker
+                // if(this.windowIndex == index){
+                //     // toggle the popup window
+                //     this.windowOpen = !this.windowOpen
+                // } else {
+                //     // if not open window anyways and set windowIndex as marker index
+                //     this.windowOpen = true;
+                //     this.windowIndex = index;
+                // }
             },
             //close window function
             windowClose(){
